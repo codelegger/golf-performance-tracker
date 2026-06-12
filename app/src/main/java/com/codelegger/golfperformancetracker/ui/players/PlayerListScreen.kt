@@ -18,6 +18,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,6 +51,7 @@ fun PlayerListScreen(
         uiState = uiState,
         onPlayerClick = onPlayerClick,
         onRetry = viewModel::refresh,
+        onQueryChange = viewModel::onQueryChange,
     )
 }
 
@@ -59,37 +61,46 @@ internal fun PlayerListContent(
     uiState: PlayerListUiState,
     onPlayerClick: (String) -> Unit,
     onRetry: () -> Unit,
+    onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
         topBar = { CenterAlignedTopAppBar(title = { Text("PLAYERS") }) },
     ) { innerPadding ->
-        when {
-            uiState.isLoading && uiState.players.isEmpty() -> {
-                LoadingState(Modifier.padding(innerPadding))
+        Column(Modifier.padding(innerPadding)) {
+            OutlinedTextField(
+                value = uiState.query,
+                onValueChange = onQueryChange,
+                singleLine = true,
+                label = { Text("Search name or club") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            )
+
+            if (uiState.errorMessage != null && uiState.players.isNotEmpty()) {
+                ErrorBanner(message = uiState.errorMessage, onRetry = onRetry)
             }
 
-            uiState.players.isEmpty() -> {
-                MessageState(
-                    modifier = Modifier.padding(innerPadding),
-                    message = uiState.errorMessage ?: "No players yet.",
+            when {
+                uiState.isLoading && uiState.players.isEmpty() -> LoadingState()
+
+                uiState.players.isEmpty() -> MessageState(
+                    message = when {
+                        uiState.errorMessage != null -> uiState.errorMessage
+                        uiState.query.isNotBlank() -> "No players match \"${uiState.query}\"."
+                        else -> "No players yet."
+                    },
                     onRetry = onRetry,
                 )
-            }
 
-            else -> {
-                Column(Modifier.padding(innerPadding)) {
-                    if (uiState.errorMessage != null) {
-                        ErrorBanner(message = uiState.errorMessage, onRetry = onRetry)
-                    }
-                    LazyColumn(
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                    ) {
-                        items(uiState.players, key = { it.id }) { player ->
-                            PlayerCard(player = player, onClick = { onPlayerClick(player.id) })
-                        }
+                else -> LazyColumn(
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    items(uiState.players, key = { it.id }) { player ->
+                        PlayerCard(player = player, onClick = { onPlayerClick(player.id) })
                     }
                 }
             }
@@ -220,6 +231,7 @@ private fun PlayerListPreview() {
             ),
             onPlayerClick = {},
             onRetry = {},
+            onQueryChange = {},
         )
     }
 }

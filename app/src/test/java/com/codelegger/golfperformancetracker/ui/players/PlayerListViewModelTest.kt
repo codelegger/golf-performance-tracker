@@ -57,6 +57,47 @@ class PlayerListViewModelTest {
     }
 
     @Test
+    fun query_filtersByName() = runTest {
+        val viewModel = PlayerListViewModel(FakePlayerRepository(initial = samplePlayers))
+
+        viewModel.onQueryChange("sam")
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(1, state.players.size)
+            assertEquals("Sam Lee", state.players.first().name)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun query_filtersByClub_caseInsensitive() = runTest {
+        val viewModel = PlayerListViewModel(FakePlayerRepository(initial = samplePlayers))
+
+        viewModel.onQueryChange("DRIVER")
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertEquals(1, state.players.size)
+            assertEquals("Jake Newman", state.players.first().name)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun blankQuery_returnsAllPlayers() = runTest {
+        val viewModel = PlayerListViewModel(FakePlayerRepository(initial = samplePlayers))
+
+        viewModel.onQueryChange("driver")
+        viewModel.onQueryChange("")
+
+        viewModel.uiState.test {
+            assertEquals(2, expectMostRecentItem().players.size)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun onErrorShown_clearsError() = runTest {
         val repo = FakePlayerRepository(
             initial = samplePlayers,

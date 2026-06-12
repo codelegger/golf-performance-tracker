@@ -23,7 +23,7 @@ class PlayerListScreenTest {
         )
         composeTestRule.setContent {
             GolfTheme {
-                PlayerListContent(uiState = state, onPlayerClick = {}, onRetry = {})
+                PlayerListContent(uiState = state, onPlayerClick = {}, onRetry = {}, onQueryChange = {})
             }
         }
 

@@ -22,6 +22,7 @@ import javax.inject.Inject
  */
 data class PlayerListUiState(
     val players: List<Player> = emptyList(),
+    val query: String = "",
     val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
     val errorMessage: String? = null,
@@ -34,19 +35,23 @@ class PlayerListViewModel @Inject constructor(
 
     private val isRefreshing = MutableStateFlow(false)
     private val errorMessage = MutableStateFlow<String?>(null)
+    private val query = MutableStateFlow("")
 
     /**
-     * Combines the reactive cache stream with transient UI signals into one state. Because
-     * the players come from Room, the list survives config changes and shows instantly offline.
+     * Combines the reactive cache stream with the search query and transient UI signals.
+     * Filtering happens here (not in the UI) so it's testable and the screen stays dumb.
+     * Because the players come from Room, the list survives config changes and shows offline.
      */
     val uiState: StateFlow<PlayerListUiState> =
         combine(
             repository.observePlayers(),
+            query,
             isRefreshing,
             errorMessage,
-        ) { players, refreshing, error ->
+        ) { players, q, refreshing, error ->
             PlayerListUiState(
-                players = players,
+                players = players.filterByQuery(q),
+                query = q,
                 isLoading = false,
                 isRefreshing = refreshing,
                 errorMessage = error,
@@ -56,6 +61,10 @@ class PlayerListViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = PlayerListUiState(),
         )
+
+    fun onQueryChange(newQuery: String) {
+        query.value = newQuery
+    }
 
     init {
         refresh()
@@ -76,4 +85,11 @@ class PlayerListViewModel @Inject constructor(
     fun onErrorShown() {
         errorMessage.value = null
     }
+}
+
+/** Case-insensitive match on player name or club. Blank query returns everything. */
+private fun List<Player>.filterByQuery(query: String): List<Player> {
+    val q = query.trim()
+    if (q.isEmpty()) return this
+    return filter { it.name.contains(q, ignoreCase = true) || it.club.contains(q, ignoreCase = true) }
 }
