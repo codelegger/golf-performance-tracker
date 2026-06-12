@@ -3,7 +3,9 @@ package com.codelegger.golfperformancetracker.ui.players.detail
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.codelegger.golfperformancetracker.domain.model.Player
+import com.codelegger.golfperformancetracker.domain.model.Shot
 import com.codelegger.golfperformancetracker.domain.repository.PlayerRepository
+import com.codelegger.golfperformancetracker.domain.repository.ShotRepository
 import com.codelegger.golfperformancetracker.util.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -25,32 +28,53 @@ class PlayerDetailViewModelTest {
         Player("2", "Sofia Martinez", "7 Iron", null, 118.0, 172.0),
     )
 
+    private val shots = listOf(
+        Shot("s1", "1", 168.0, 11.4, 293.0, "Driver", 2480, null),
+        Shot("s2", "1", 140.3, 17.2, 212.0, "4i", 4900, null),
+    )
+
     @Test
-    fun emitsPlayerMatchingNavArgId() = runTest {
+    fun emitsPlayerAndShotsForNavArgId() = runTest {
         val viewModel = PlayerDetailViewModel(
-            savedStateHandle = SavedStateHandle(mapOf("playerId" to "2")),
-            repository = FakePlayerRepository(players),
+            savedStateHandle = SavedStateHandle(mapOf("playerId" to "1")),
+            playerRepository = FakePlayerRepository(players),
+            shotRepository = FakeShotRepository(shots),
         )
 
         viewModel.uiState.test {
             val state = expectMostRecentItem()
-            assertEquals("Sofia Martinez", state.player?.name)
+            assertEquals("Jake Newman", state.player?.name)
+            assertEquals(2, state.shots.size)
             assertFalse(state.isLoading)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
-    fun unknownId_yieldsNullPlayer() = runTest {
+    fun refreshShotsIsRequestedOnInit() = runTest {
+        val shotRepo = FakeShotRepository(shots)
+
+        PlayerDetailViewModel(
+            savedStateHandle = SavedStateHandle(mapOf("playerId" to "1")),
+            playerRepository = FakePlayerRepository(players),
+            shotRepository = shotRepo,
+        )
+
+        assertTrue(shotRepo.refreshedFor.contains("1"))
+    }
+
+    @Test
+    fun unknownId_yieldsNullPlayerAndNoShots() = runTest {
         val viewModel = PlayerDetailViewModel(
             savedStateHandle = SavedStateHandle(mapOf("playerId" to "999")),
-            repository = FakePlayerRepository(players),
+            playerRepository = FakePlayerRepository(players),
+            shotRepository = FakeShotRepository(shots),
         )
 
         viewModel.uiState.test {
             val state = expectMostRecentItem()
             assertNull(state.player)
-            assertFalse(state.isLoading)
+            assertTrue(state.shots.isEmpty())
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -62,4 +86,15 @@ private class FakePlayerRepository(initial: List<Player>) : PlayerRepository {
     override fun observePlayer(id: String): Flow<Player?> =
         players.map { list -> list.firstOrNull { it.id == id } }
     override suspend fun refreshPlayers(): Result<Unit> = Result.success(Unit)
+}
+
+private class FakeShotRepository(initial: List<Shot>) : ShotRepository {
+    private val shots = MutableStateFlow(initial)
+    val refreshedFor = mutableListOf<String>()
+    override fun observeShots(playerId: String): Flow<List<Shot>> =
+        shots.map { list -> list.filter { it.playerId == playerId } }
+    override suspend fun refreshShots(playerId: String): Result<Unit> {
+        refreshedFor.add(playerId)
+        return Result.success(Unit)
+    }
 }

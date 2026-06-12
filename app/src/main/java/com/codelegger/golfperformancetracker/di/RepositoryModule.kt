@@ -1,7 +1,9 @@
 package com.codelegger.golfperformancetracker.di
 
 import com.codelegger.golfperformancetracker.data.repository.PlayerRepositoryImpl
+import com.codelegger.golfperformancetracker.data.repository.ShotRepositoryImpl
 import com.codelegger.golfperformancetracker.domain.repository.PlayerRepository
+import com.codelegger.golfperformancetracker.domain.repository.ShotRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -20,4 +22,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindPlayerRepository(impl: PlayerRepositoryImpl): PlayerRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindShotRepository(impl: ShotRepositoryImpl): ShotRepository
 }
