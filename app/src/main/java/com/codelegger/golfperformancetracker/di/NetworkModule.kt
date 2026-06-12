@@ -1,5 +1,6 @@
 package com.codelegger.golfperformancetracker.di
 
+import com.codelegger.golfperformancetracker.data.remote.GolfApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -13,18 +14,18 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
 
 /**
- * Provides the networking stack (OkHttp + Moshi + Retrofit) as application-scoped singletons.
+ * Provides the networking stack (OkHttp + Moshi + Retrofit + [GolfApi]) as singletons.
  *
- * The concrete API service interface is added with the first data slice; this module sets up
- * everything needed to create it. [BASE_URL] is a placeholder pointing at MockAPI and will be
- * finalized when the API contract is defined.
+ * [BASE_URL] must point at a MockAPI project exposing `/players` and `/players/{id}/shots`.
+ * Replace the placeholder below with your MockAPI base URL (see README). The app is
+ * offline-first, so with an unreachable URL it simply shows cached data (empty on first run).
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    // TODO(data-slice): replace with the real MockAPI base URL once the schema is hosted.
-    private const val BASE_URL = "https://000000000000000000000000.mockapi.io/api/v1/"
+    // MockAPI project exposing /players and /players/{id}/shots.
+    private const val BASE_URL = "https://6a2c5b9a3e2b60ab038fb5c0.mockapi.io/api/v1/"
 
     @Provides
     @Singleton
@@ -56,4 +57,8 @@ object NetworkModule {
             .client(client)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
+
+    @Provides
+    @Singleton
+    fun provideGolfApi(retrofit: Retrofit): GolfApi = retrofit.create(GolfApi::class.java)
 }

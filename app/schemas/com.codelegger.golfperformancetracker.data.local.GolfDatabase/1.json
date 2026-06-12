@@ -1,0 +1,143 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "f2046f42e9a0fe8513772001c15d1000",
+    "entities": [
+      {
+        "tableName": "players",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `club` TEXT NOT NULL, `avatarUrl` TEXT, `averageBallSpeed` REAL NOT NULL, `averageCarryDistance` REAL NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "name",
+            "columnName": "name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "club",
+            "columnName": "club",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "avatarUrl",
+            "columnName": "avatarUrl",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "averageBallSpeed",
+            "columnName": "averageBallSpeed",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "averageCarryDistance",
+            "columnName": "averageCarryDistance",
+            "affinity": "REAL",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        }
+      },
+      {
+        "tableName": "shots",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `playerId` TEXT NOT NULL, `ballSpeed` REAL NOT NULL, `launchAngle` REAL NOT NULL, `carryDistance` REAL NOT NULL, `clubType` TEXT NOT NULL, `spinRate` INTEGER NOT NULL, `createdAt` TEXT, PRIMARY KEY(`id`), FOREIGN KEY(`playerId`) REFERENCES `players`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "playerId",
+            "columnName": "playerId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "ballSpeed",
+            "columnName": "ballSpeed",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "launchAngle",
+            "columnName": "launchAngle",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "carryDistance",
+            "columnName": "carryDistance",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clubType",
+            "columnName": "clubType",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "spinRate",
+            "columnName": "spinRate",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "createdAt",
+            "affinity": "TEXT"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_shots_playerId",
+            "unique": false,
+            "columnNames": [
+              "playerId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_shots_playerId` ON `${TABLE_NAME}` (`playerId`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "players",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "playerId"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f2046f42e9a0fe8513772001c15d1000')"
+    ]
+  }
+}

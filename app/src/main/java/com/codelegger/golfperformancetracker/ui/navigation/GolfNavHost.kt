@@ -5,11 +5,11 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.codelegger.golfperformancetracker.ui.home.HomeScreen
+import com.codelegger.golfperformancetracker.ui.players.PlayerListScreen
 
 /**
- * Root navigation graph. Hosts the single [GolfDestinations.HOME] destination for now;
- * feature destinations are wired in here as they are built.
+ * Root navigation graph. Starts on the player list; feature destinations (player detail,
+ * shots) are wired in here as they are built.
  */
 @Composable
 fun GolfNavHost(
@@ -17,10 +17,13 @@ fun GolfNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = GolfDestinations.HOME,
+        startDestination = GolfDestinations.PLAYERS,
     ) {
-        composable(GolfDestinations.HOME) {
-            HomeScreen()
+        composable(GolfDestinations.PLAYERS) {
+            PlayerListScreen(
+                // TODO(slice 2): navigate to player detail
+                onPlayerClick = { /* playerId -> navController.navigate(...) */ },
+            )
         }
     }
 }
