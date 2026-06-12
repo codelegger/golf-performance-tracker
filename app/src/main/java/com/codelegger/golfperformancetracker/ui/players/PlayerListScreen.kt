@@ -1,6 +1,5 @@
 package com.codelegger.golfperformancetracker.ui.players
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,10 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -27,7 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,6 +32,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.codelegger.golfperformancetracker.domain.model.Player
 import com.codelegger.golfperformancetracker.theme.GolfTheme
+import com.codelegger.golfperformancetracker.ui.components.InitialsAvatar
 
 /**
  * Stateful entry point — observes [PlayerListViewModel]. Rendering is delegated to the
@@ -117,7 +114,7 @@ private fun PlayerCard(player: Player, onClick: () -> Unit) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            InitialsAvatar(name = player.name)
+            InitialsAvatar(name = player.name, size = 48)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -139,9 +136,9 @@ private fun PlayerCard(player: Player, onClick: () -> Unit) {
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = "%.0f".format(player.averageBallSpeed),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
                     text = "MPH AVG",
@@ -150,28 +147,6 @@ private fun PlayerCard(player: Player, onClick: () -> Unit) {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun InitialsAvatar(name: String) {
-    val initials = name.trim().split(" ")
-        .mapNotNull { it.firstOrNull()?.uppercaseChar() }
-        .take(2)
-        .joinToString("")
-    Box(
-        modifier = Modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = initials,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onPrimary,
-        )
     }
 }
 

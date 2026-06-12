@@ -1,6 +1,7 @@
 package com.codelegger.golfperformancetracker.ui.players.detail
 
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,10 +10,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -23,10 +22,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,6 +37,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.codelegger.golfperformancetracker.domain.model.Player
 import com.codelegger.golfperformancetracker.domain.model.Shot
 import com.codelegger.golfperformancetracker.theme.GolfTheme
+import com.codelegger.golfperformancetracker.ui.components.ClubBadge
+import com.codelegger.golfperformancetracker.ui.components.InitialsAvatar
+import kotlin.math.roundToInt
 
 @Composable
 fun PlayerDetailScreen(
@@ -122,8 +127,8 @@ private fun PlayerDetailBody(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
-                HeroMetric("AVG BALL SPEED", "%.0f".format(player.averageBallSpeed), "MPH")
-                HeroMetric("AVG CARRY", "%.0f".format(player.averageCarryDistance), "YARDS")
+                HeroMetric("AVG BALL SPEED", player.averageBallSpeed.roundToInt(), "MPH")
+                HeroMetric("AVG CARRY", player.averageCarryDistance.roundToInt(), "YARDS")
             }
         }
 
@@ -154,13 +159,8 @@ private fun PlayerDetailBody(
 private fun ShotCard(shot: Shot) {
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
-            Text(
-                text = shot.clubType,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            ClubBadge(club = shot.clubType)
+            HorizontalDivider(Modifier.padding(vertical = 12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -174,46 +174,48 @@ private fun ShotCard(shot: Shot) {
     }
 }
 
+/** Column-header label in brand red (per DESIGN_LANGUAGE), value in ink, unit muted. */
 @Composable
 private fun ShotMetric(label: String, value: String, unit: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
         Text(unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
-/** A single big number with a quiet uppercase label and unit — the data-forward hero block. */
+/**
+ * Data-forward hero block: big ink number that counts up on first display (the required
+ * animation), with a quiet uppercase label and unit. Numbers stay ink (not brand-colored).
+ */
 @Composable
-private fun HeroMetric(label: String, value: String, unit: String) {
+private fun HeroMetric(label: String, value: Int, unit: String) {
+    var target by remember { mutableIntStateOf(0) }
+    LaunchedEffect(value) { target = value }
+    val animated by animateIntAsState(
+        targetValue = target,
+        animationSpec = tween(durationMillis = 700),
+        label = "heroMetric",
+    )
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Text(
-            text = value,
+            text = "$animated",
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.onSurface,
         )
         Text(unit, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-@Composable
-private fun InitialsAvatar(name: String, size: Int) {
-    val initials = name.trim().split(" ")
-        .mapNotNull { it.firstOrNull()?.uppercaseChar() }
-        .take(2)
-        .joinToString("")
-    Box(
-        modifier = Modifier.size(size.dp).clip(CircleShape).background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = initials,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onPrimary,
-        )
     }
 }
 
