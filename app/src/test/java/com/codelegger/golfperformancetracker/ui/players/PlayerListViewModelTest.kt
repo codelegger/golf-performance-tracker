@@ -6,6 +6,7 @@ import com.codelegger.golfperformancetracker.domain.repository.PlayerRepository
 import com.codelegger.golfperformancetracker.util.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -81,6 +82,9 @@ private class FakePlayerRepository(
     private val players = MutableStateFlow(initial)
 
     override fun observePlayers(): Flow<List<Player>> = players
+
+    override fun observePlayer(id: String): Flow<Player?> =
+        players.map { list -> list.firstOrNull { it.id == id } }
 
     override suspend fun refreshPlayers(): Result<Unit> = refreshResult
 }

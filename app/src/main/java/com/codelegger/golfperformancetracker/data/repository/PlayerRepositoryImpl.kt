@@ -31,6 +31,9 @@ class PlayerRepositoryImpl @Inject constructor(
     override fun observePlayers(): Flow<List<Player>> =
         dao.observePlayers().map { entities -> entities.map(PlayerEntity::toDomain) }
 
+    override fun observePlayer(id: String): Flow<Player?> =
+        dao.observePlayer(id).map { it?.toDomain() }
+
     override suspend fun refreshPlayers(): Result<Unit> = withContext(ioDispatcher) {
         runCatching {
             val remote = api.getPlayers()

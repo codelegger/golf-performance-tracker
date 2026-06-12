@@ -15,5 +15,8 @@ interface PlayerRepository {
 
     fun observePlayers(): Flow<List<Player>>
 
+    /** Streams a single player from the cache by id, or `null` if not cached. */
+    fun observePlayer(id: String): Flow<Player?>
+
     suspend fun refreshPlayers(): Result<Unit>
 }
