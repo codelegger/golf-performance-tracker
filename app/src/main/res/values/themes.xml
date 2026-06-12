@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Launch/window theme (light). Compose drives the in-app Material 3 theming. -->
+    <style name="Theme.GolfPerformanceTracker" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>
