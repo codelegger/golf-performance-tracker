@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local-only interview prep notes — not part of the deliverable
+/docs/FOUNDATION-OVERVIEW.md
