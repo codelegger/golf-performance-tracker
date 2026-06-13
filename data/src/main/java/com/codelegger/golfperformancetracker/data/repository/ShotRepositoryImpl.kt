@@ -31,7 +31,8 @@ class ShotRepositoryImpl @Inject constructor(
     override suspend fun refreshShots(playerId: String): Result<Unit> = withContext(ioDispatcher) {
         runCatching {
             val remote = api.getShots(playerId)
-            dao.upsertShots(remote.map { it.toEntity(fallbackPlayerId = playerId) })
+            // Replace (not just upsert) so shots removed server-side are pruned for this player.
+            dao.replaceShots(playerId, remote.map { it.toEntity(fallbackPlayerId = playerId) })
             Timber.d("Refreshed %d shots for player %s", remote.size, playerId)
         }.onFailure { Timber.w(it, "Shot refresh failed for player %s; serving cache", playerId) }
     }

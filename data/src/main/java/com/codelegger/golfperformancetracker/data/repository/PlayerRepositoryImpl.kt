@@ -38,7 +38,8 @@ class PlayerRepositoryImpl @Inject constructor(
     override suspend fun refreshPlayers(): Result<Unit> = withContext(ioDispatcher) {
         runCatching {
             val remote = api.getPlayers()
-            dao.upsertPlayers(remote.map { it.toEntity() })
+            // Replace (not just upsert) so players removed server-side are pruned locally too.
+            dao.replacePlayers(remote.map { it.toEntity() })
             Timber.d("Refreshed %d players from network", remote.size)
         }.onFailure { Timber.w(it, "Player refresh failed; serving cache") }
     }
