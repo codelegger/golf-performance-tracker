@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -31,6 +32,7 @@ class ShotRepositoryImpl @Inject constructor(
         runCatching {
             val remote = api.getShots(playerId)
             dao.upsertShots(remote.map { it.toEntity(fallbackPlayerId = playerId) })
-        }
+            Timber.d("Refreshed %d shots for player %s", remote.size, playerId)
+        }.onFailure { Timber.w(it, "Shot refresh failed for player %s; serving cache", playerId) }
     }
 }

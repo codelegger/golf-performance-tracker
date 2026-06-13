@@ -80,6 +80,9 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
 
+    // --- Logging ---
+    implementation(libs.timber)
+
     // --- Coroutines ---
     implementation(libs.kotlinx.coroutines.android)
 

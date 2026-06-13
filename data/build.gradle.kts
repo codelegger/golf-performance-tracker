@@ -55,6 +55,9 @@ dependencies {
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
 
+    // Logging
+    implementation(libs.timber)
+
     // Unit tests for parsing + mapping
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

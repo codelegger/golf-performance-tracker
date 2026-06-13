@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.codelegger.golfperformancetracker.domain.repository.PlayerRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import timber.log.Timber
 
 /**
  * Background worker that refreshes the player cache.
@@ -22,11 +23,19 @@ class PlayerSyncWorker @AssistedInject constructor(
     private val playerRepository: PlayerRepository,
 ) : CoroutineWorker(appContext, params) {
 
-    override suspend fun doWork(): Result =
-        playerRepository.refreshPlayers().fold(
-            onSuccess = { Result.success() },
-            onFailure = { Result.retry() },
+    override suspend fun doWork(): Result {
+        Timber.i("PlayerSyncWorker: starting background player sync")
+        return playerRepository.refreshPlayers().fold(
+            onSuccess = {
+                Timber.i("PlayerSyncWorker: sync succeeded")
+                Result.success()
+            },
+            onFailure = {
+                Timber.w(it, "PlayerSyncWorker: sync failed, will retry")
+                Result.retry()
+            },
         )
+    }
 
     companion object {
         const val UNIQUE_WORK_NAME = "player-sync"
