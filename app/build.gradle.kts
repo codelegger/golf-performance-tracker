@@ -53,6 +53,9 @@ ksp {
 }
 
 dependencies {
+    // --- Project modules ---
+    implementation(project(":domain"))
+
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
