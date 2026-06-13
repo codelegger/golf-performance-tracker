@@ -48,7 +48,7 @@ Data comes from a [MockAPI](https://mockapi.io/) project exposing two resources:
 - `GET /players/{id}/shots`
 
 Set your base URL via the `GOLF_BASE_URL` Gradle property — it flows into
-`BuildConfig.BASE_URL`, which [`NetworkModule.kt`](app/src/main/java/com/codelegger/golfperformancetracker/di/NetworkModule.kt)
+`BuildConfig.BASE_URL`, which [`NetworkModule.kt`](data/src/main/java/com/codelegger/golfperformancetracker/di/NetworkModule.kt)
 reads. Keeping it out of source means no per-environment code edits.
 
 Either pass it on the command line:
