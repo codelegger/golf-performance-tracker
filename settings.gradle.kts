@@ -20,3 +20,4 @@ plugins {
 rootProject.name = "Golf Performance Tracker"
 include(":app")
 include(":domain")
+include(":data")

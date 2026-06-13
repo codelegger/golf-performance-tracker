@@ -47,13 +47,9 @@ kotlin {
     jvmToolchain(17)
 }
 
-// Export Room schemas so migrations are reviewable and testable.
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-}
-
 dependencies {
-    // --- Project modules ---
+    // --- Project modules (:data exposes :domain via api) ---
+    implementation(project(":data"))
     implementation(project(":domain"))
 
     val composeBom = platform(libs.androidx.compose.bom)
@@ -80,18 +76,6 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
-    // --- Local persistence (Room) ---
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
-
-    // --- Networking (Retrofit + Moshi + OkHttp) ---
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.converter.moshi)
-    implementation(libs.moshi)
-    implementation(libs.moshi.kotlin)
-    implementation(libs.okhttp.logging.interceptor)
-
     // --- Image loading (Coil) ---
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
@@ -99,18 +83,15 @@ dependencies {
     // --- Coroutines ---
     implementation(libs.kotlinx.coroutines.android)
 
-    // --- Background work (WorkManager + Hilt integration) ---
+    // --- WorkManager runtime (GolfApplication wires the Hilt WorkerFactory) ---
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.hilt.work)
-    ksp(libs.androidx.hilt.compiler)
 
     // --- Unit tests (JVM) ---
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
     testImplementation(libs.mockk)
-    testImplementation(libs.androidx.room.testing)
-    testImplementation(libs.androidx.work.testing)
 
     // --- Instrumented tests ---
     androidTestImplementation(libs.androidx.test.core)
