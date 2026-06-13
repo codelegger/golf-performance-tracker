@@ -64,6 +64,40 @@ class PlayerDetailViewModelTest {
     }
 
     @Test
+    fun shotRefreshFailure_surfacesAsRefreshFailed_butKeepsCachedShots() = runTest {
+        val viewModel = PlayerDetailViewModel(
+            savedStateHandle = SavedStateHandle(mapOf("playerId" to "1")),
+            playerRepository = FakePlayerRepository(players),
+            shotRepository = FakeShotRepository(shots, refreshResult = Result.failure(RuntimeException("offline"))),
+        )
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            assertTrue(state.refreshFailed)
+            assertEquals(2, state.shots.size) // cached shots still shown
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun retry_clearsRefreshFailed_whenRefreshSucceeds() = runTest {
+        val shotRepo = FakeShotRepository(shots, refreshResult = Result.failure(RuntimeException("offline")))
+        val viewModel = PlayerDetailViewModel(
+            savedStateHandle = SavedStateHandle(mapOf("playerId" to "1")),
+            playerRepository = FakePlayerRepository(players),
+            shotRepository = shotRepo,
+        )
+
+        viewModel.uiState.test {
+            assertTrue(expectMostRecentItem().refreshFailed)
+            shotRepo.refreshResult = Result.success(Unit)
+            viewModel.refresh()
+            assertFalse(expectMostRecentItem().refreshFailed)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun unknownId_yieldsNullPlayerAndNoShots() = runTest {
         val viewModel = PlayerDetailViewModel(
             savedStateHandle = SavedStateHandle(mapOf("playerId" to "999")),
@@ -88,13 +122,16 @@ private class FakePlayerRepository(initial: List<Player>) : PlayerRepository {
     override suspend fun refreshPlayers(): Result<Unit> = Result.success(Unit)
 }
 
-private class FakeShotRepository(initial: List<Shot>) : ShotRepository {
+private class FakeShotRepository(
+    initial: List<Shot>,
+    var refreshResult: Result<Unit> = Result.success(Unit),
+) : ShotRepository {
     private val shots = MutableStateFlow(initial)
     val refreshedFor = mutableListOf<String>()
     override fun observeShots(playerId: String): Flow<List<Shot>> =
         shots.map { list -> list.filter { it.playerId == playerId } }
     override suspend fun refreshShots(playerId: String): Result<Unit> {
         refreshedFor.add(playerId)
-        return Result.success(Unit)
+        return refreshResult
     }
 }

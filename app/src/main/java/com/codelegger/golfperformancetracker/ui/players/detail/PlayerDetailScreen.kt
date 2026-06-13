@@ -25,7 +25,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -55,7 +57,7 @@ fun PlayerDetailScreen(
     viewModel: PlayerDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    PlayerDetailContent(uiState = uiState, onBack = onBack)
+    PlayerDetailContent(uiState = uiState, onBack = onBack, onRetry = viewModel::refresh)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,6 +66,7 @@ internal fun PlayerDetailContent(
     uiState: PlayerDetailUiState,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
+    onRetry: () -> Unit = {},
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -92,6 +95,8 @@ internal fun PlayerDetailContent(
             else -> PlayerDetailBody(
                 player = uiState.player,
                 shots = uiState.shots,
+                refreshFailed = uiState.refreshFailed,
+                onRetry = onRetry,
                 contentPadding = innerPadding,
             )
         }
@@ -102,6 +107,8 @@ internal fun PlayerDetailContent(
 private fun PlayerDetailBody(
     player: Player,
     shots: List<Shot>,
+    refreshFailed: Boolean,
+    onRetry: () -> Unit,
     contentPadding: PaddingValues,
 ) {
     var selectedShot by remember { mutableStateOf<Shot?>(null) }
@@ -116,6 +123,10 @@ private fun PlayerDetailBody(
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
+        if (refreshFailed) {
+            item { StaleDataBanner(onRetry = onRetry) }
+        }
+
         item {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -181,6 +192,33 @@ private fun PlayerDetailBody(
 
     selectedShot?.let { shot ->
         ShotDetailSheet(shot = shot, onDismiss = { selectedShot = null })
+    }
+}
+
+/**
+ * Non-blocking notice shown when a shot refresh failed. Cached shots remain visible above/below
+ * it (offline-first), so this only signals staleness and offers a retry — it never replaces data.
+ */
+@Composable
+private fun StaleDataBanner(onRetry: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.errorContainer,
+        shape = MaterialTheme.shapes.medium,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = "Couldn't refresh — showing saved shots.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = onRetry) { Text("RETRY") }
+        }
     }
 }
 
