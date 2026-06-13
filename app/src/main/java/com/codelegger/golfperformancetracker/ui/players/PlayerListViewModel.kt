@@ -75,7 +75,7 @@ class PlayerListViewModel @Inject constructor(
             isRefreshing.value = true
             errorMessage.value = null
             repository.refreshPlayers().onFailure { throwable ->
-                errorMessage.value = throwable.message ?: "Couldn't refresh players"
+                errorMessage.value = throwable.toUserMessage()
             }
             isRefreshing.value = false
         }
@@ -85,6 +85,15 @@ class PlayerListViewModel @Inject constructor(
     fun onErrorShown() {
         errorMessage.value = null
     }
+}
+
+/**
+ * Maps a refresh failure to a user-friendly message. The raw exception is kept in Timber
+ * logs (in the repository); the UI never shows developer text like "Unable to resolve host".
+ */
+private fun Throwable.toUserMessage(): String = when (this) {
+    is java.io.IOException -> "No connection — showing saved data."
+    else -> "Couldn't refresh. Tap Retry."
 }
 
 /** Case-insensitive match on player name or club. Blank query returns everything. */
