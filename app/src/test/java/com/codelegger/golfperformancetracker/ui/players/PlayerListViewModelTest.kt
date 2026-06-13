@@ -40,16 +40,18 @@ class PlayerListViewModelTest {
     }
 
     @Test
-    fun refreshFailure_surfacesError_butKeepsCachedPlayers() = runTest {
+    fun refreshFailure_surfacesFriendlyError_butKeepsCachedPlayers() = runTest {
         val repo = FakePlayerRepository(
             initial = samplePlayers,
-            refreshResult = Result.failure(RuntimeException("offline")),
+            // A network failure (UnknownHostException is an IOException).
+            refreshResult = Result.failure(java.io.IOException("Unable to resolve host")),
         )
         val viewModel = PlayerListViewModel(repo) // init{} triggers refresh -> failure
 
         viewModel.uiState.test {
             val state = expectMostRecentItem()
-            assertEquals("offline", state.errorMessage)
+            // The raw exception text is mapped to a user-friendly message.
+            assertEquals("No connection — showing saved data.", state.errorMessage)
             assertEquals(samplePlayers, state.players) // cache untouched
             assertFalse(state.isRefreshing)
             cancelAndIgnoreRemainingEvents()
