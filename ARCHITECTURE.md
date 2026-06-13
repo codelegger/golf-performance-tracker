@@ -54,7 +54,7 @@ surfaced as a transient banner **without clearing cached data**.
 | Hilt DI | Compile-time validated graph; first-class ViewModel + WorkManager support | Heavier setup than Koin |
 | `@Binds` for interfaces, `@Provides` for constructed deps (Retrofit/Room) | `@Binds` generates no factory body | — |
 | Injected `CoroutineDispatcher`s | Swap for `TestDispatcher` → deterministic tests | One more module |
-| Single module (not multi-module) | *Achieve more with less*; clean packages give the boundary cheaply | Doesn't show module-graph skills; easy to extract later |
+| Three Gradle modules (`:app` / `:data` / `:domain`) | Enforces the layer boundary at compile time; `:domain` stays framework-free and fast to test | More Gradle config than a single module |
 | Room `exportSchema = true` | Migrations stay reviewable/testable | A schema file per version |
 | WorkManager + `NetworkType.CONNECTED` | Guaranteed, constraint-aware background sync | 15-min minimum period |
 | Client-side search filter | Trivial for this dataset; no per-keystroke network | Would move to a Room `LIKE` query at scale |
@@ -82,5 +82,6 @@ per-club stat-pill row — the "custom views for visualizing performance metrics
 
 ## Possible next steps
 
-Paging 3 for large player lists, multi-module extraction (`app` / `data` / `domain` / `ui`),
-and bundling the condensed brand fonts (Oswald / Barlow Condensed) used in the design language.
+Paging 3 for large player lists (deliberately omitted here — over-engineering for a 6-item
+list), further splitting a `:ui` module out of `:app`, and bundling the condensed brand fonts
+(Oswald / Barlow Condensed) used in the design language.

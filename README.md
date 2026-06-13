@@ -77,16 +77,20 @@ UI (Compose)  →  ViewModel (StateFlow)  →  Repository (SSOT)  →  Room (loc
 Data flows **down** as immutable UI state; events flow **up**. The repository reads from Room
 and writes the network response into Room, so the UI always observes a single source of truth.
 
-## Module / package layout (single module)
+## Modules
+
+The project is split into three Gradle modules (dependency direction `:app → :data → :domain`):
 
 ```
-com.codelegger.golfperformancetracker
-├── di/         Hilt modules (Network, Database, Dispatchers, Repository)
-├── domain/     model/ (Player, Shot) + repository/ interfaces
-├── data/       remote/ (Retrofit API + DTOs), local/ (Room), mapper/, repository/ impls
-├── ui/         theme/, navigation/, players/ (list + detail), components/
-└── work/       WorkManager sync (PlayerSyncWorker, SyncScheduler)
+:domain   Pure Kotlin — model/ (Player, Shot) + repository/ interfaces. No Android/network/db.
+:data     Room (local/), Retrofit+Moshi (remote/), mapper/, repository/ impls, di/ (Hilt),
+          work/ (WorkManager sync). Exposes :domain via `api(...)`.
+:app      Compose UI — theme/, navigation/, players/ (list + detail), components/ —
+          plus GolfApplication (@HiltAndroidApp) and MainActivity.
 ```
+
+`:domain` depends on nothing (just coroutines for `Flow`), keeping the core business types
+free of framework concerns and instantly unit-testable.
 
 ## Testing
 
