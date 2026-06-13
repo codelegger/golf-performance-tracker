@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -38,6 +39,7 @@ class PlayerRepositoryImpl @Inject constructor(
         runCatching {
             val remote = api.getPlayers()
             dao.upsertPlayers(remote.map { it.toEntity() })
-        }
+            Timber.d("Refreshed %d players from network", remote.size)
+        }.onFailure { Timber.w(it, "Player refresh failed; serving cache") }
     }
 }

@@ -5,6 +5,7 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import com.codelegger.golfperformancetracker.work.SyncScheduler
 import dagger.hilt.android.HiltAndroidApp
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -27,8 +28,12 @@ class GolfApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        // Structured logging. In a release build this would be gated / swapped for a
+        // crash-reporting tree; a take-home keeps it simple with the debug tree.
+        Timber.plant(Timber.DebugTree())
         // Schedule the periodic, connectivity-aware background sync.
         SyncScheduler.schedule(this)
+        Timber.d("GolfApplication started; periodic player sync scheduled")
     }
 }
 

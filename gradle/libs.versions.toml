@@ -35,6 +35,9 @@ coil = "3.0.4"
 # Background work
 work = "2.11.2"
 
+# Logging
+timber = "5.0.1"
+
 # Testing
 junit = "4.13.2"
 turbine = "1.2.1"
@@ -92,6 +95,9 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 
 # --- WorkManager ---
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "work" }
+
+# --- Logging ---
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 
 # --- Unit testing ---
 junit = { module = "junit:junit", version.ref = "junit" }
