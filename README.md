@@ -10,6 +10,9 @@ backed by a REST API and cached locally with Room. Built with Jetpack Compose an
 Player avatars are loaded from the API (`avatarUrl`) with **Coil**, falling back to colored
 initials. Club badges follow Rapsodo's club color palette.
 
+▶️ **Demo video:** [`screenshots/demo.mp4`](screenshots/demo.mp4) — a ~20s walkthrough
+(player list → detail with the animated shot map → shot bottom sheet → search filter).
+
 ## Features
 
 - **Player list** with search/filter by name or club.
