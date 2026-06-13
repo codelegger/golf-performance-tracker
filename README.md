@@ -1,0 +1,89 @@
+# Golf Performance Tracker
+
+An offline-first Android app that lists golf players and their shot performance metrics,
+backed by a REST API and cached locally with Room. Built with Jetpack Compose and MVVM.
+
+| Players | Player detail | Shot detail |
+|---|---|---|
+| Name, club, avg ball speed | Hero stats + shot list | Bottom sheet with full metrics |
+
+## Features
+
+- **Player list** with search/filter by name or club.
+- **Player detail** with animated hero stats (avg ball speed, avg carry).
+- **Shots** per player; tap a shot for full metrics (ball speed, launch angle, carry, spin) in a bottom sheet.
+- **Offline-first**: all data is cached in Room and readable with no connectivity; a background
+  WorkManager job refreshes when back online.
+- **Light & dark themes**, Rapsodo-style data-forward UI with club category colors.
+
+## Tech stack
+
+- **Kotlin**, Coroutines + Flow
+- **Jetpack Compose** + Material 3 (single-Activity)
+- **MVVM** + Repository pattern, single source of truth (Room)
+- **Hilt** for dependency injection
+- **Room** for local persistence (offline cache)
+- **Retrofit 2 + Moshi** for the REST API
+- **WorkManager** for background sync
+- **Navigation Compose**
+- Tests: JUnit, Turbine, MockK, kotlinx-coroutines-test
+
+## Setup & build
+
+### Requirements
+- Android Studio (latest stable) / JDK 17
+- Android SDK 36, min SDK 24
+
+### 1. Configure the API base URL
+Data comes from a [MockAPI](https://mockapi.io/) project exposing two resources:
+- `GET /players`
+- `GET /players/{id}/shots`
+
+Set your base URL in
+[`NetworkModule.kt`](app/src/main/java/com/codelegger/golfperformancetracker/di/NetworkModule.kt):
+
+```kotlin
+private const val BASE_URL = "https://<your-project-id>.mockapi.io/api/v1/"
+```
+
+**Player** resource fields: `name`, `club`, `avatarUrl`, `averageBallSpeed`, `averageCarryDistance`.
+**Shot** resource fields (child of `players`): `ballSpeed`, `launchAngle`, `carryDistance`,
+`clubType`, `spinRate`, `createdAt`.
+
+> The app is offline-first: with an unreachable URL it runs and shows cached data
+> (an empty list on first run) rather than crashing.
+
+### 2. Build & run
+```bash
+./gradlew assembleDebug        # build the APK
+./gradlew installDebug         # install on a connected device/emulator
+./gradlew testDebugUnitTest    # run unit tests
+./gradlew lintDebug            # run Android lint
+```
+
+## Architecture
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the design and the decisions behind it. In short:
+
+```
+UI (Compose)  →  ViewModel (StateFlow)  →  Repository (SSOT)  →  Room (local) + Retrofit (remote)
+```
+
+Data flows **down** as immutable UI state; events flow **up**. The repository reads from Room
+and writes the network response into Room, so the UI always observes a single source of truth.
+
+## Module / package layout (single module)
+
+```
+com.codelegger.golfperformancetracker
+├── di/         Hilt modules (Network, Database, Dispatchers, Repository)
+├── domain/     model/ (Player, Shot) + repository/ interfaces
+├── data/       remote/ (Retrofit API + DTOs), local/ (Room), mapper/, repository/ impls
+├── ui/         theme/, navigation/, players/ (list + detail), components/
+└── work/       WorkManager sync (PlayerSyncWorker, SyncScheduler)
+```
+
+## Testing
+
+Unit tests cover DTO parsing, DTO↔Entity↔domain mapping, ViewModel state (list, search,
+detail) using Turbine, and the club-color mapping. Run with `./gradlew testDebugUnitTest`.
