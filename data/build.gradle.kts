@@ -69,7 +69,13 @@ dependencies {
     // Logging
     implementation(libs.timber)
 
-    // Unit tests for parsing + mapping
+    // Unit tests: parsing, mapping, repositories (fake API+DAO), and the sync worker.
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    // Real Room DAO tests + WorkManager worker tests run on the JVM via Robolectric.
+    testImplementation(libs.androidx.room.testing)
+    testImplementation(libs.androidx.work.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.androidx.test.ext.junit)
 }
