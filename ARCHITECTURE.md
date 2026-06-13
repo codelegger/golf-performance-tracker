@@ -3,6 +3,17 @@
 A short tour of how the Golf Performance Tracker is built and *why* — aligned with Rapsodo's
 principles (customer focus, achieve more with less, fail fast, team accountability).
 
+## Demo
+
+| Players (light) | Player detail + stats (dark) | Shot bottom sheet | Offline (cached) |
+|---|---|---|---|
+| ![Players](screenshots/players-light.png) | ![Detail](screenshots/detail-dark.png) | ![Shot sheet](screenshots/shot-bottom-sheet.png) | ![Offline](screenshots/offline-cache.png) |
+
+- **Players** — avatars loaded from the API (Coil), name, club, avg ball speed; live search.
+- **Detail** — animated count-up hero stats, per-club stat pills, a custom-Canvas shot map, and the shot list.
+- **Shot sheet** — tap any shot for full metrics in a Material 3 bottom sheet.
+- **Offline** — airplane mode: cached players + avatars still render, with a transient refresh error.
+
 ## Layered MVVM + Repository (Clean Architecture)
 
 ```
