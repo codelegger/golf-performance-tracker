@@ -32,7 +32,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.codelegger.golfperformancetracker.domain.model.Player
 import com.codelegger.golfperformancetracker.theme.GolfTheme
-import com.codelegger.golfperformancetracker.ui.components.InitialsAvatar
+import com.codelegger.golfperformancetracker.ui.components.PlayerAvatar
 
 /**
  * Stateful entry point — observes [PlayerListViewModel]. Rendering is delegated to the
@@ -118,7 +118,7 @@ private fun PlayerCard(player: Player, onClick: () -> Unit, modifier: Modifier =
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            InitialsAvatar(name = player.name, size = 48)
+            PlayerAvatar(name = player.name, imageUrl = player.avatarUrl, size = 48)
             Column(
                 modifier = Modifier
                     .weight(1f)

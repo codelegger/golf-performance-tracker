@@ -89,6 +89,10 @@ dependencies {
     implementation(libs.moshi.kotlin)
     implementation(libs.okhttp.logging.interceptor)
 
+    // --- Image loading (Coil) ---
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
     // --- Coroutines ---
     implementation(libs.kotlinx.coroutines.android)
 

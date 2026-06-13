@@ -3,9 +3,12 @@
 An offline-first Android app that lists golf players and their shot performance metrics,
 backed by a REST API and cached locally with Room. Built with Jetpack Compose and MVVM.
 
-| Players | Player detail | Shot detail |
-|---|---|---|
-| Name, club, avg ball speed | Hero stats + shot list | Bottom sheet with full metrics |
+| Players (light) | Player detail (dark) | Shot bottom sheet | Offline cache |
+|---|---|---|---|
+| ![Players](screenshots/players-light.png) | ![Detail](screenshots/detail-dark.png) | ![Shot sheet](screenshots/shot-bottom-sheet.png) | ![Offline](screenshots/offline-cache.png) |
+
+Player avatars are loaded from the API (`avatarUrl`) with **Coil**, falling back to colored
+initials. Club badges follow Rapsodo's club color palette.
 
 ## Features
 
@@ -25,6 +28,7 @@ backed by a REST API and cached locally with Room. Built with Jetpack Compose an
 - **Room** for local persistence (offline cache)
 - **Retrofit 2 + Moshi** for the REST API
 - **WorkManager** for background sync
+- **Coil** for loading player avatar images
 - **Navigation Compose**
 - Tests: JUnit, Turbine, MockK, kotlinx-coroutines-test
 

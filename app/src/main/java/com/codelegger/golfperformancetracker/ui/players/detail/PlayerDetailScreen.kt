@@ -43,7 +43,7 @@ import com.codelegger.golfperformancetracker.domain.model.Player
 import com.codelegger.golfperformancetracker.domain.model.Shot
 import com.codelegger.golfperformancetracker.theme.GolfTheme
 import com.codelegger.golfperformancetracker.ui.components.ClubBadge
-import com.codelegger.golfperformancetracker.ui.components.InitialsAvatar
+import com.codelegger.golfperformancetracker.ui.components.PlayerAvatar
 import kotlin.math.roundToInt
 
 @Composable
@@ -114,7 +114,7 @@ private fun PlayerDetailBody(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                InitialsAvatar(name = player.name, size = 88)
+                PlayerAvatar(name = player.name, imageUrl = player.avatarUrl, size = 88)
                 Text(
                     text = player.name,
                     style = MaterialTheme.typography.headlineSmall,
