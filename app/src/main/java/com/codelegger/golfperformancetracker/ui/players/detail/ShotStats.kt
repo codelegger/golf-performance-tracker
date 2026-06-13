@@ -93,9 +93,11 @@ private fun StatPill(club: String, value: Int) {
 }
 
 /**
- * Custom-drawn dispersion chart (Compose [Canvas]) — plots each shot by carry distance (x)
- * and launch angle (y), colored by club, on a dark panel with distance gridlines and a
- * dashed centerline. This is the "Custom Views for visualizing performance metrics" bonus.
+ * Custom-drawn "shot map" (Compose [Canvas]) — plots each shot by carry distance (x) and
+ * launch angle (y), colored by club, on a dark panel with distance gridlines and a dashed
+ * centerline. (Named "shot map" rather than "dispersion": true dispersion is lateral
+ * left/right of target, which the API doesn't provide — so we map the two metrics we have.)
+ * This is the "Custom Views for visualizing performance metrics" bonus.
  */
 @Composable
 fun ShotDispersionChart(shots: List<Shot>, modifier: Modifier = Modifier) {
@@ -114,7 +116,7 @@ fun ShotDispersionChart(shots: List<Shot>, modifier: Modifier = Modifier) {
 
     Column(modifier) {
         Text(
-            text = "DISPERSION · carry (yds) × launch",
+            text = "SHOT MAP · carry (yds) × launch",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(bottom = 6.dp),
