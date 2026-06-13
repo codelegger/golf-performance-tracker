@@ -19,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -96,16 +97,22 @@ internal fun PlayerListContent(
                     onRetry = onRetry,
                 )
 
-                else -> LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                else -> PullToRefreshBox(
+                    isRefreshing = uiState.isRefreshing,
+                    onRefresh = onRetry,
                 ) {
-                    items(uiState.players, key = { it.id }) { player ->
-                        PlayerCard(
-                            player = player,
-                            onClick = { onPlayerClick(player.id) },
-                            modifier = Modifier.animateItem(),
-                        )
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        items(uiState.players, key = { it.id }) { player ->
+                            PlayerCard(
+                                player = player,
+                                onClick = { onPlayerClick(player.id) },
+                                modifier = Modifier.animateItem(),
+                            )
+                        }
                     }
                 }
             }
