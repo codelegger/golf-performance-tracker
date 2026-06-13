@@ -38,6 +38,9 @@ work = "2.11.2"
 # Logging
 timber = "5.0.1"
 
+# Paging — pinned to 3.3.x for Hilt annotation-processor metadata compatibility
+paging = "3.3.6"
+
 # Testing
 junit = "4.13.2"
 turbine = "1.2.1"
@@ -99,6 +102,11 @@ androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version
 
 # --- Logging ---
 timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
+
+# --- Paging 3 ---
+androidx-paging-common = { module = "androidx.paging:paging-common", version.ref = "paging" }
+androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "paging" }
+androidx-paging-compose = { module = "androidx.paging:paging-compose", version.ref = "paging" }
 
 # --- Unit testing ---
 junit = { module = "junit:junit", version.ref = "junit" }

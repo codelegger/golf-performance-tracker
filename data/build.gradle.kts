@@ -36,6 +36,9 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    // Paging 3 (PagingSource + Pager)
+    implementation(libs.androidx.paging.runtime)
+
     // Networking
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.moshi)

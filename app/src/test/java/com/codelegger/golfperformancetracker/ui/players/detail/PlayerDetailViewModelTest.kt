@@ -6,9 +6,11 @@ import com.codelegger.golfperformancetracker.domain.model.Player
 import com.codelegger.golfperformancetracker.domain.model.Shot
 import com.codelegger.golfperformancetracker.domain.repository.PlayerRepository
 import com.codelegger.golfperformancetracker.domain.repository.ShotRepository
+import androidx.paging.PagingData
 import com.codelegger.golfperformancetracker.util.MainDispatcherRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -86,6 +88,7 @@ private class FakePlayerRepository(initial: List<Player>) : PlayerRepository {
     override fun observePlayer(id: String): Flow<Player?> =
         players.map { list -> list.firstOrNull { it.id == id } }
     override suspend fun refreshPlayers(): Result<Unit> = Result.success(Unit)
+    override fun pagedPlayers(): Flow<PagingData<Player>> = flowOf(PagingData.empty())
 }
 
 private class FakeShotRepository(initial: List<Shot>) : ShotRepository {
