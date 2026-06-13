@@ -1,5 +1,8 @@
 package com.codelegger.golfperformancetracker.ui.players.detail
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -114,6 +118,13 @@ fun ShotDispersionChart(shots: List<Shot>, modifier: Modifier = Modifier) {
     val minLaunch = remember(shots) { shots.minOfOrNull { it.launchAngle } ?: 0.0 }
     val maxLaunch = remember(shots) { shots.maxOfOrNull { it.launchAngle } ?: 1.0 }
 
+    // Drives the staggered "plotting" animation: dots scale + fade in one after another.
+    val drawProgress = remember(shots) { Animatable(0f) }
+    LaunchedEffect(shots) {
+        drawProgress.snapTo(0f)
+        drawProgress.animateTo(1f, animationSpec = tween(durationMillis = 900, easing = FastOutSlowInEasing))
+    }
+
     Column(modifier) {
         Text(
             text = "SHOT MAP · carry (yds) × launch",
@@ -152,14 +163,19 @@ fun ShotDispersionChart(shots: List<Shot>, modifier: Modifier = Modifier) {
             )
 
             // Shot dots: x = carry, y = launch angle (higher launch sits higher).
+            // Each dot gets its own slice of the timeline so they appear in sequence.
             val laRange = (maxLaunch - minLaunch).takeIf { it > 0.0 } ?: 1.0
-            shots.forEach { shot ->
+            val n = shots.size.coerceAtLeast(1)
+            shots.forEachIndexed { i, shot ->
+                val start = i.toFloat() / n
+                val dotProgress = ((drawProgress.value - start) * n).coerceIn(0f, 1f)
+                if (dotProgress <= 0f) return@forEachIndexed
                 val px = (shot.carryDistance / maxCarry * w).toFloat()
                 val tNorm = (shot.launchAngle - minLaunch) / laRange
                 val py = (h - (tNorm * (h * 0.7) + h * 0.15)).toFloat()
                 drawCircle(
-                    color = clubColor(shot.clubType),
-                    radius = 6.dp.toPx(),
+                    color = clubColor(shot.clubType).copy(alpha = dotProgress),
+                    radius = 6.dp.toPx() * dotProgress,
                     center = Offset(px, py),
                 )
             }
