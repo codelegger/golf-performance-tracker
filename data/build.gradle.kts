@@ -10,6 +10,17 @@ android {
 
     defaultConfig {
         minSdk = 24
+
+        // API base URL is configuration, not code. Override per environment with a Gradle
+        // property — e.g. `-PGOLF_BASE_URL=...` or a line in ~/.gradle/gradle.properties —
+        // and it flows through to BuildConfig.BASE_URL (consumed by NetworkModule).
+        val baseUrl = (project.findProperty("GOLF_BASE_URL") as String?)
+            ?: "https://6a2c5b9a3e2b60ab038fb5c0.mockapi.io/api/v1/"
+        buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     compileOptions {

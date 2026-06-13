@@ -1,5 +1,6 @@
 package com.codelegger.golfperformancetracker.di
 
+import com.codelegger.golfperformancetracker.data.BuildConfig
 import com.codelegger.golfperformancetracker.data.remote.GolfApi
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -16,16 +17,15 @@ import javax.inject.Singleton
 /**
  * Provides the networking stack (OkHttp + Moshi + Retrofit + [GolfApi]) as singletons.
  *
- * [BASE_URL] must point at a MockAPI project exposing `/players` and `/players/{id}/shots`.
- * Replace the placeholder below with your MockAPI base URL (see README). The app is
- * offline-first, so with an unreachable URL it simply shows cached data (empty on first run).
+ * The base URL comes from [BuildConfig.BASE_URL], wired from the `GOLF_BASE_URL` Gradle
+ * property (see :data build script and README) so it's environment configuration rather than
+ * a hard-coded constant. It must point at a MockAPI project exposing `/players` and
+ * `/players/{id}/shots`. The app is offline-first, so with an unreachable URL it simply shows
+ * cached data (empty on first run).
  */
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
-    // MockAPI project exposing /players and /players/{id}/shots.
-    private const val BASE_URL = "https://6a2c5b9a3e2b60ab038fb5c0.mockapi.io/api/v1/"
 
     @Provides
     @Singleton
@@ -53,7 +53,7 @@ object NetworkModule {
     @Singleton
     fun provideRetrofit(client: OkHttpClient, moshi: Moshi): Retrofit =
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(BuildConfig.BASE_URL)
             .client(client)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()

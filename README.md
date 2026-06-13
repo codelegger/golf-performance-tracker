@@ -47,12 +47,23 @@ Data comes from a [MockAPI](https://mockapi.io/) project exposing two resources:
 - `GET /players`
 - `GET /players/{id}/shots`
 
-Set your base URL in
-[`NetworkModule.kt`](app/src/main/java/com/codelegger/golfperformancetracker/di/NetworkModule.kt):
+Set your base URL via the `GOLF_BASE_URL` Gradle property — it flows into
+`BuildConfig.BASE_URL`, which [`NetworkModule.kt`](app/src/main/java/com/codelegger/golfperformancetracker/di/NetworkModule.kt)
+reads. Keeping it out of source means no per-environment code edits.
 
-```kotlin
-private const val BASE_URL = "https://<your-project-id>.mockapi.io/api/v1/"
+Either pass it on the command line:
+
+```bash
+./gradlew installDebug -PGOLF_BASE_URL="https://<your-project-id>.mockapi.io/api/v1/"
 ```
+
+…or set it once (and keep it out of git) in `~/.gradle/gradle.properties`:
+
+```properties
+GOLF_BASE_URL=https://<your-project-id>.mockapi.io/api/v1/
+```
+
+If unset, it falls back to the bundled demo MockAPI project.
 
 **Player** resource fields: `name`, `club`, `avatarUrl`, `averageBallSpeed`, `averageCarryDistance`.
 **Shot** resource fields (child of `players`): `ballSpeed`, `launchAngle`, `carryDistance`,
