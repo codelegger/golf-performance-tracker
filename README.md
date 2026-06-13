@@ -14,6 +14,7 @@ initials. Club badges follow Rapsodo's club color palette.
 
 - **Player list** with search/filter by name or club.
 - **Player detail** with animated hero stats (avg ball speed, avg carry).
+- **Stats visualization**: per-club stat pills + a custom-drawn shot map (carry × launch).
 - **Shots** per player; tap a shot for full metrics (ball speed, launch angle, carry, spin) in a bottom sheet.
 - **Offline-first**: all data is cached in Room and readable with no connectivity; a background
   WorkManager job refreshes when back online.

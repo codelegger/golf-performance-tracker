@@ -66,7 +66,9 @@ chrome, brand red reserved for accents (metric column headers), and **color used
 category** — club badges follow Rapsodo's club palette and player avatars get a stable
 per-name color. Light & dark themes via Material 3 `ColorScheme`s. A count-up animation on the
 hero stats and animated list insertion/removal (visible when filtering) provide motion; tapping
-a shot opens a Material 3 **bottom sheet** with the shot's full metrics.
+a shot opens a Material 3 **bottom sheet** with the shot's full metrics. The detail screen
+also includes a **custom Compose `Canvas` shot map** (carry × launch, colored by club) and a
+per-club stat-pill row — the "custom views for visualizing performance metrics" bonus.
 
 ## Testing strategy
 
@@ -80,6 +82,5 @@ a shot opens a Material 3 **bottom sheet** with the shot's full metrics.
 
 ## Possible next steps
 
-Paging 3 for large player lists, a dispersion/trajectory chart on the detail screen,
-multi-module extraction (`app` / `data` / `domain` / `ui`), and bundling the condensed brand
-fonts (Oswald / Barlow Condensed) used in the design language.
+Paging 3 for large player lists, multi-module extraction (`app` / `data` / `domain` / `ui`),
+and bundling the condensed brand fonts (Oswald / Barlow Condensed) used in the design language.
