@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,14 +19,17 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -92,6 +97,8 @@ private fun PlayerDetailBody(
     shots: List<Shot>,
     contentPadding: PaddingValues,
 ) {
+    var selectedShot by remember { mutableStateOf<Shot?>(null) }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -134,7 +141,7 @@ private fun PlayerDetailBody(
 
         item {
             Text(
-                text = "SHOTS (${shots.size})",
+                text = "SHOTS (${shots.size}) · tap for detail",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp),
@@ -150,14 +157,24 @@ private fun PlayerDetailBody(
                 )
             }
         } else {
-            items(shots, key = { it.id }) { shot -> ShotCard(shot) }
+            items(shots, key = { it.id }) { shot ->
+                ShotCard(
+                    shot = shot,
+                    onClick = { selectedShot = shot },
+                    modifier = Modifier.animateItem(),
+                )
+            }
         }
+    }
+
+    selectedShot?.let { shot ->
+        ShotDetailSheet(shot = shot, onDismiss = { selectedShot = null })
     }
 }
 
 @Composable
-private fun ShotCard(shot: Shot) {
-    ElevatedCard(modifier = Modifier.fillMaxWidth()) {
+private fun ShotCard(shot: Shot, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    ElevatedCard(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Column(Modifier.padding(16.dp)) {
             ClubBadge(club = shot.clubType)
             HorizontalDivider(Modifier.padding(vertical = 12.dp))
@@ -166,10 +183,64 @@ private fun ShotCard(shot: Shot) {
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 ShotMetric("BALL", "%.0f".format(shot.ballSpeed), "mph")
-                ShotMetric("LAUNCH", "%.1f".format(shot.launchAngle), "°")
+                ShotMetric("LAUNCH", "%.1f°".format(shot.launchAngle), "deg")
                 ShotMetric("CARRY", "%.0f".format(shot.carryDistance), "yd")
                 ShotMetric("SPIN", "${shot.spinRate}", "rpm")
             }
+        }
+    }
+}
+
+/** Bottom sheet showing a single shot's full metrics — Rapsodo leans on bottom sheets. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ShotDetailSheet(shot: Shot, onDismiss: () -> Unit) {
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 24.dp, end = 24.dp, bottom = 32.dp),
+        ) {
+            ClubBadge(club = shot.clubType)
+            Spacer(Modifier.height(20.dp))
+            SheetMetric("CARRY", "${shot.carryDistance.roundToInt()}", "YARDS")
+            HorizontalDivider(Modifier.padding(vertical = 12.dp))
+            SheetMetric("BALL SPEED", "${shot.ballSpeed.roundToInt()}", "MPH")
+            HorizontalDivider(Modifier.padding(vertical = 12.dp))
+            SheetMetric("LAUNCH ANGLE", "%.1f°".format(shot.launchAngle), "DEG")
+            HorizontalDivider(Modifier.padding(vertical = 12.dp))
+            SheetMetric("SPIN RATE", "${shot.spinRate}", "RPM")
+        }
+    }
+}
+
+/** Big number-forward row for the bottom sheet: label left, huge value + unit right. */
+@Composable
+private fun SheetMetric(label: String, value: String, unit: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row(verticalAlignment = Alignment.Bottom) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = " $unit",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = 6.dp),
+            )
         }
     }
 }

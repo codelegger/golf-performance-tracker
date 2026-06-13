@@ -12,30 +12,36 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.codelegger.golfperformancetracker.theme.clubColor
 import com.codelegger.golfperformancetracker.theme.onClubColor
+import com.codelegger.golfperformancetracker.theme.personColor
 
-/** Neutral circular avatar showing a person's initials (chrome stays neutral). */
+/**
+ * Circular avatar with a person's initials, tinted by a stable per-name color
+ * (the one place we color the player chrome — matches Rapsodo's colored circles).
+ */
 @Composable
 fun InitialsAvatar(name: String, size: Int, modifier: Modifier = Modifier) {
     val initials = name.trim().split(" ")
         .mapNotNull { it.firstOrNull()?.uppercaseChar() }
         .take(2)
         .joinToString("")
+    val background: Color = personColor(name)
     Box(
         modifier = modifier
             .size(size.dp)
             .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.surfaceVariant),
+            .background(background),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = initials,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = onClubColor(background),
         )
     }
 }

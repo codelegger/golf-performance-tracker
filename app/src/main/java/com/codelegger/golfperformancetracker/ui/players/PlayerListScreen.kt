@@ -97,7 +97,11 @@ internal fun PlayerListContent(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     items(uiState.players, key = { it.id }) { player ->
-                        PlayerCard(player = player, onClick = { onPlayerClick(player.id) })
+                        PlayerCard(
+                            player = player,
+                            onClick = { onPlayerClick(player.id) },
+                            modifier = Modifier.animateItem(),
+                        )
                     }
                 }
             }
@@ -106,8 +110,8 @@ internal fun PlayerListContent(
 }
 
 @Composable
-private fun PlayerCard(player: Player, onClick: () -> Unit) {
-    ElevatedCard(onClick = onClick, modifier = Modifier.fillMaxWidth()) {
+private fun PlayerCard(player: Player, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    ElevatedCard(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
