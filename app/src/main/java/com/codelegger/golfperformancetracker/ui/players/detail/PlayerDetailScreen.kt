@@ -139,6 +139,11 @@ private fun PlayerDetailBody(
             }
         }
 
+        if (shots.isNotEmpty()) {
+            item { StatPillRow(shots) }
+            item { ShotDispersionChart(shots) }
+        }
+
         item {
             Text(
                 text = "SHOTS (${shots.size}) · tap for detail",
