@@ -34,7 +34,7 @@ class PlayerListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val isRefreshing = MutableStateFlow(false)
-    private val errorMessage = MutableStateFlow<String?>(null)
+    private val errorKind = MutableStateFlow<ErrorKind?>(null)
     private val query = MutableStateFlow("")
 
     /**
@@ -47,14 +47,16 @@ class PlayerListViewModel @Inject constructor(
             repository.observePlayers(),
             query,
             isRefreshing,
-            errorMessage,
+            errorKind,
         ) { players, q, refreshing, error ->
             PlayerListUiState(
                 players = players.filterByQuery(q),
                 query = q,
                 isLoading = false,
                 isRefreshing = refreshing,
-                errorMessage = error,
+                // Wording depends on whether we actually have a cache to fall back on —
+                // promising "saved data" on an empty first launch would be a lie.
+                errorMessage = error?.toUserMessage(hasCache = players.isNotEmpty()),
             )
         }.stateIn(
             scope = viewModelScope,
@@ -73,9 +75,9 @@ class PlayerListViewModel @Inject constructor(
     fun refresh() {
         viewModelScope.launch {
             isRefreshing.value = true
-            errorMessage.value = null
+            errorKind.value = null
             repository.refreshPlayers().onFailure { throwable ->
-                errorMessage.value = throwable.toUserMessage()
+                errorKind.value = throwable.toErrorKind()
             }
             isRefreshing.value = false
         }
@@ -83,17 +85,27 @@ class PlayerListViewModel @Inject constructor(
 
     /** Call after a transient error has been shown to the user (e.g. snackbar dismissed). */
     fun onErrorShown() {
-        errorMessage.value = null
+        errorKind.value = null
     }
 }
 
+/** The kinds of refresh failure we distinguish; raw exceptions stay in Timber logs. */
+private enum class ErrorKind { OFFLINE, GENERIC }
+
+private fun Throwable.toErrorKind(): ErrorKind = when (this) {
+    is java.io.IOException -> ErrorKind.OFFLINE
+    else -> ErrorKind.GENERIC
+}
+
 /**
- * Maps a refresh failure to a user-friendly message. The raw exception is kept in Timber
- * logs (in the repository); the UI never shows developer text like "Unable to resolve host".
+ * Maps a failure to user-friendly text. The wording for an offline failure depends on whether
+ * a cache exists: with cached players we reassure ("showing saved data"); with an empty DB
+ * (e.g. first launch with no connection) we tell the user connecting will load the data.
  */
-private fun Throwable.toUserMessage(): String = when (this) {
-    is java.io.IOException -> "No connection — showing saved data."
-    else -> "Couldn't refresh. Tap Retry."
+private fun ErrorKind.toUserMessage(hasCache: Boolean): String = when (this) {
+    ErrorKind.OFFLINE ->
+        if (hasCache) "No connection — showing saved data." else "No connection — connect to load players."
+    ErrorKind.GENERIC -> "Couldn't refresh. Tap Retry."
 }
 
 /** Case-insensitive match on player name or club. Blank query returns everything. */

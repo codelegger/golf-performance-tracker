@@ -59,6 +59,23 @@ class PlayerListViewModelTest {
     }
 
     @Test
+    fun refreshFailure_withEmptyCache_tellsUserToConnect() = runTest {
+        val repo = FakePlayerRepository(
+            initial = emptyList(), // first launch: nothing cached yet
+            refreshResult = Result.failure(java.io.IOException("Unable to resolve host")),
+        )
+        val viewModel = PlayerListViewModel(repo)
+
+        viewModel.uiState.test {
+            val state = expectMostRecentItem()
+            // We must not promise "saved data" when there is none to show.
+            assertEquals("No connection — connect to load players.", state.errorMessage)
+            assertEquals(emptyList<Player>(), state.players)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun query_filtersByName() = runTest {
         val viewModel = PlayerListViewModel(FakePlayerRepository(initial = samplePlayers))
 
