@@ -1,5 +1,8 @@
 package com.codelegger.golfperformancetracker.data.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import com.codelegger.golfperformancetracker.data.local.GolfDao
 import com.codelegger.golfperformancetracker.data.local.entity.PlayerEntity
 import com.codelegger.golfperformancetracker.data.mapper.toDomain
@@ -42,4 +45,10 @@ class PlayerRepositoryImpl @Inject constructor(
             Timber.d("Refreshed %d players from network", remote.size)
         }.onFailure { Timber.w(it, "Player refresh failed; serving cache") }
     }
+
+    override fun pagedPlayers(): Flow<PagingData<Player>> =
+        Pager(
+            config = PagingConfig(pageSize = 4, initialLoadSize = 4, prefetchDistance = 1),
+            pagingSourceFactory = { PlayerPagingSource(api, ioDispatcher) },
+        ).flow
 }

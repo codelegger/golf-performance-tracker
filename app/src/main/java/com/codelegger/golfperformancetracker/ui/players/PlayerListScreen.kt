@@ -10,102 +10,73 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.compose.itemKey
 import com.codelegger.golfperformancetracker.domain.model.Player
-import com.codelegger.golfperformancetracker.theme.GolfTheme
 import com.codelegger.golfperformancetracker.ui.components.PlayerAvatar
 
 /**
- * Stateful entry point — observes [PlayerListViewModel]. Rendering is delegated to the
- * stateless [PlayerListContent] so it stays previewable and testable without Hilt.
+ * Player list backed by Paging 3 ([collectAsLazyPagingItems]). The combined load state drives
+ * the initial spinner / error retry, and an append spinner shows while the next page loads.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerListScreen(
     onPlayerClick: (String) -> Unit,
     viewModel: PlayerListViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    PlayerListContent(
-        uiState = uiState,
-        onPlayerClick = onPlayerClick,
-        onRetry = viewModel::refresh,
-        onQueryChange = viewModel::onQueryChange,
-    )
-}
+    val players = viewModel.players.collectAsLazyPagingItems()
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun PlayerListContent(
-    uiState: PlayerListUiState,
-    onPlayerClick: (String) -> Unit,
-    onRetry: () -> Unit,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
     Scaffold(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         topBar = { CenterAlignedTopAppBar(title = { Text("PLAYERS") }) },
     ) { innerPadding ->
-        Column(Modifier.padding(innerPadding)) {
-            OutlinedTextField(
-                value = uiState.query,
-                onValueChange = onQueryChange,
-                singleLine = true,
-                label = { Text("Search name or club") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            )
+        when (val refresh = players.loadState.refresh) {
+            is LoadState.Loading -> CenterBox(innerPadding) { CircularProgressIndicator() }
 
-            if (uiState.errorMessage != null && uiState.players.isNotEmpty()) {
-                ErrorBanner(message = uiState.errorMessage, onRetry = onRetry)
+            is LoadState.Error -> CenterBox(innerPadding) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = (refresh.error as? java.io.IOException)
+                            ?.let { "No connection. Tap retry." }
+                            ?: "Couldn't load players.",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    TextButton(onClick = { players.retry() }) { Text("Retry") }
+                }
             }
 
-            when {
-                uiState.isLoading && uiState.players.isEmpty() -> LoadingState()
-
-                uiState.players.isEmpty() -> MessageState(
-                    message = when {
-                        uiState.errorMessage != null -> uiState.errorMessage
-                        uiState.query.isNotBlank() -> "No players match \"${uiState.query}\"."
-                        else -> "No players yet."
-                    },
-                    onRetry = onRetry,
-                )
-
-                else -> LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(uiState.players, key = { it.id }) { player ->
-                        PlayerCard(
-                            player = player,
-                            onClick = { onPlayerClick(player.id) },
-                            modifier = Modifier.animateItem(),
-                        )
+            else -> LazyColumn(
+                modifier = Modifier.padding(innerPadding),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(players.itemCount, key = players.itemKey { it.id }) { index ->
+                    players[index]?.let { player ->
+                        PlayerCard(player = player, onClick = { onPlayerClick(player.id) })
+                    }
+                }
+                if (players.loadState.append is LoadState.Loading) {
+                    item {
+                        Box(Modifier.fillMaxWidth().padding(16.dp), Alignment.Center) {
+                            CircularProgressIndicator()
+                        }
                     }
                 }
             }
@@ -114,19 +85,23 @@ internal fun PlayerListContent(
 }
 
 @Composable
+private fun CenterBox(padding: PaddingValues, content: @Composable () -> Unit) {
+    Box(
+        modifier = Modifier.fillMaxSize().padding(padding),
+        contentAlignment = Alignment.Center,
+    ) { content() }
+}
+
+@Composable
 private fun PlayerCard(player: Player, onClick: () -> Unit, modifier: Modifier = Modifier) {
     ElevatedCard(onClick = onClick, modifier = modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             PlayerAvatar(name = player.name, imageUrl = player.avatarUrl, size = 48)
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 16.dp),
+                modifier = Modifier.weight(1f).padding(start = 16.dp),
             ) {
                 Text(
                     text = player.name,
@@ -155,66 +130,5 @@ private fun PlayerCard(player: Player, onClick: () -> Unit, modifier: Modifier =
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun LoadingState(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
-    }
-}
-
-@Composable
-private fun MessageState(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        Text(message, style = MaterialTheme.typography.bodyLarge)
-        TextButton(onClick = onRetry) { Text("Retry") }
-    }
-}
-
-@Composable
-private fun ErrorBanner(message: String, onRetry: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.errorContainer,
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(onClick = onRetry) { Text("Retry") }
-        }
-    }
-}
-
-@Preview(name = "Players – Light", showBackground = true)
-@Composable
-private fun PlayerListPreview() {
-    GolfTheme {
-        PlayerListContent(
-            uiState = PlayerListUiState(
-                players = listOf(
-                    Player("1", "Jake Newman", "Driver", null, 156.0, 268.0),
-                    Player("2", "Sam Lee", "7 Iron", null, 118.0, 172.0),
-                ),
-                isLoading = false,
-            ),
-            onPlayerClick = {},
-            onRetry = {},
-            onQueryChange = {},
-        )
     }
 }

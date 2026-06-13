@@ -1,5 +1,6 @@
 package com.codelegger.golfperformancetracker.domain.repository
 
+import androidx.paging.PagingData
 import com.codelegger.golfperformancetracker.domain.model.Player
 import kotlinx.coroutines.flow.Flow
 
@@ -19,4 +20,7 @@ interface PlayerRepository {
     fun observePlayer(id: String): Flow<Player?>
 
     suspend fun refreshPlayers(): Result<Unit>
+
+    /** Paged stream of players (Paging 3) loaded page-by-page from the API. */
+    fun pagedPlayers(): Flow<PagingData<Player>>
 }
